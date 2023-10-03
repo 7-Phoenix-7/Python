@@ -44,8 +44,18 @@ def fetch_temperature(ctx: Context, sender: str, request: TemperatureRequest):
     return current_temperature
 
 #Function to check if the current temperature is outside of the user's preferred range.
-def check_temp_range():
-    pass
+def check_temp_range(ctx:Context):
+    ctx.send(f'Enter preferred minimum tempreature: '{min_temp})
+    ctx.send(f'Enter preferred maximum tempreature: '{max_temp})
+
+    current_temp = fetch_temperature()
+
+    if curr_temp > max_temp:
+        ctx.send(sender, TemperatureRequest(Model))
+    
+    elif curr_temp<min_temp:
+        ctx.send(sender, TemperatureRequest(Model))
+
 
 @agent.on_interval(period=120)
 async def fetch_weather_data(ctx: Context):
