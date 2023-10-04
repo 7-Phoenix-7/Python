@@ -44,18 +44,20 @@ def fetch_temperature(ctx: Context, sender: str, request: TemperatureRequest):
     return current_temperature
 
 #Function to check if the current temperature is outside of the user's preferred range.
-def check_temp_range(ctx:Context):
-    ctx.send(f'Enter preferred minimum tempreature: '{min_temp})
-    ctx.send(f'Enter preferred maximum tempreature: '{max_temp})
+def check_temp_range(ctx: Context, sender: str) -> Tuple[float, float]:
+    # Prompt the user to enter their preferred minimum temperature.
+  await ctx.send(sender, "Enter your preferred minimum temperature: ")
+  min_temp_str = await ctx.receive(sender)
 
-    current_temp = fetch_temperature()
+  # Prompt the user to enter their preferred maximum temperature.
+  await ctx.send(sender, "Enter your preferred maximum temperature: ")
+  max_temp_str = await ctx.receive(sender)
 
-    if curr_temp > max_temp:
-        ctx.send(sender, TemperatureRequest(Model))
-    
-    elif curr_temp<min_temp:
-        ctx.send(sender, TemperatureRequest(Model))
+  # Convert the temperature strings to floats.
+  min_temp = float(min_temp_str)
+  max_temp = float(max_temp_str)
 
+  return min_temp, max_temp
 
 @agent.on_interval(period=120)
 async def fetch_weather_data(ctx: Context):
@@ -66,8 +68,18 @@ async def fetch_weather_data(ctx: Context):
 # Message handler for temperature alert requests'
 @agent.on_message(model=TemperatureRequest)
 async def handle_temperature_alert_request(ctx: Context, sender: str, request: TemperatureRequest):
-    # Fetch the current temperature for the specified location.
-    current_temperature = await fetch_temperature(ctx, sender, request)
+  # Prompt the user to enter their preferred temperature range.
+  min_temp, max_temp = await check_temp_range(ctx, sender)
+
+  # Fetch the current temperature for the specified location.
+  current_temperature = await fetch_temperature(ctx, sender, request)
+
+  # If the temperature is outside of the user's preferred range, send them a message.
+  if current_temperature is not None:
+    if current_temperature > max_temp:
+      ctx.send(sender, f"The temperature in {request.location} is above your preferred maximum of {max_temp} degrees Celsius.")
+    elif current_temperature < min_temp:
+      ctx.send(sender, f"The temperature in {request.location} is below your preferred minimum of {min_temp} degrees Celsius.")
 
 
 if __name__ == "__main__":
