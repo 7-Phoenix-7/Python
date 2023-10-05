@@ -106,47 +106,23 @@ def Location ( ) :
 
 # Humidity suggestions structure
 def Humidity_Suggestions ( humidity , ctx : Context ) :
+    suggestions = {
+        (0, 10): "Extremely dry conditions. Consider using moisturizer and staying hydrated.",
+        (10, 20): "Very dry conditions. Lips and throat may feel dry. Consider using a humidifier indoors.",
+        (20, 30): "Dry conditions. Moisturizing may help.",
+        (30, 40): "Moderate humidity level. Comfortable for many.",
+        (40, 50): "Generally suitable for everyone.",
+        (50, 60): "Mildly humid conditions.",
+        (60, 70): "Noticeably humid. May feel muggy.",
+        (70, 80): "Humid conditions. Consider using fans for comfort.",
+        (80, 90): "Very humid conditions. Use fans and stay cool.",
+        (90, 100): "Fully saturated air. Very uncomfortable."
+    }
 
-    if humidity < 10 :
-
-        ctx.logger.info (f"At {humidity}% Humidity: Extremely dry conditions. Consider using moisturizer and staying hydrated.")
-
-    elif humidity < 20 :
-
-        ctx.logger.info (f"At {humidity}% Humidity: Very dry conditions. Lips and throat may feel dry. Consider using a humidifier indoors.")
-
-    elif humidity < 30 :
-
-        ctx.logger.info (f"At {humidity}% Humidity: Dry conditions. Moisturizing may help.")
-
-    elif humidity < 40 :
-
-        ctx.logger.info (f"At {humidity}% Humidity: Moderate humidity level. Comfortable for many")
-
-    elif humidity < 50: 
-
-        ctx.logger.info(f"At {humidity}% Humidity: Generally suitable for everyone.")
-
-    elif humidity < 60 :
-            
-        ctx.logger.info (f"At {humidity}% Humidity: Mildly humid conditions.")
-
-    elif humidity < 70: 
-
-        ctx.logger.info (f"At {humidity}% Humidity: Noticeably humid. May feel muggy.")        
-
-    elif humidity < 80 :
-            
-        ctx.logger.info (f"At {humidity}% Humidity: Humid conditions. Consider using fans for comfort.")
-
-    elif humidity < 90 :
-            
-        ctx.logger.info (f"At {humidity}% Humidity: Very humid conditions. Use fans and stay cool.")
-
-    else :
-
-        ctx.logger.info(f"At {humidity}% Humidity: Fully saturated air. Very uncomfortable.")
-
+    for range_limits, suggestion in suggestions.items():
+        if range_limits[0] <= humidity < range_limits[1]:
+            ctx.logger.info(f"At {humidity}% Humidity: {suggestion}")
+            break
 
 # Display the Information in structured manner 
 def Display ( ctx : Context ) :
