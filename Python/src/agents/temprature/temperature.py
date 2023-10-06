@@ -44,6 +44,9 @@ def fetch_temperature(ctx: Context, sender: str, request: TemperatureRequest):
 
     return current_temperature
 
+#Create a instance of protocol with label ""
+agent = Protocol(name="timAgent", version="0.6.2")
+
 #Function to check if the current temperature is outside of the user's preferred range.
 async def check_temp_range(ctx: Context, sender: str) -> Tuple[float, float]:
     # Prompt the user to enter their preferred minimum temperature.
