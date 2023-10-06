@@ -54,6 +54,7 @@ tempAgent = Protocol(name="timAgent", version="0.6.2")
 # Function to check if the current temperature is outside of the user's preferred range
 async def prompt_and_parse_user(ctx: Context, sender: str) -> Tuple[float, float, str]:
 
+    # Prompt the user to enter their preferred city
     await ctx.send(sender, "Enter your preferred city: ")
     location = await ctx.receive(sender)
 
