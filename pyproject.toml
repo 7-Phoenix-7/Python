@@ -1,3 +1,4 @@
+<<<<<<< HEAD:pyproject.toml
 [tool.poetry]
 name = "temperature-alert-agent"
 version = "0.6.2"
@@ -14,3 +15,24 @@ uagents = "^0.6.2"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+=======
+[tool.poetry]
+name = "temperature-alert-agent"
+version = "0.6.2"
+description = "A temperature alert agent using uAgents libarary."
+authors = ["Your Name <you@example.com>"]
+license = "n"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "3.11.3"
+uagents = "^0.6.2"
+
+[other dependencies]
+requests = "2.29.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+>>>>>>> d3adb9efe723bdc67eebfb4c38998b60b1c1eb26:Python/pyproject.toml
