@@ -1,85 +1,83 @@
 from uagents import Agent, Context
+from messages.alert_msg import Alert
+from messages.request import Request
+from messages.userpreference_msg import UserPreference
 import json
 import http
+from .user import user_agent
+from .config import API_KEY
 
-min_temp = None
-max_temp = None
-location = None
-
-API_KEY = "f059d8455amsh4b068c5adade5bep1d646ajsn754b5adadb37"
-
-# Creating the agent and funding it if needed
-agent = Agent(
-    name="tempmAgent",
-    seed="temperature alert agent"
+# Creating the agent
+temperature_alert_agent = Agent(
+    name="TemperatureAlertAgent",
+    seed="Temperature Alert Agent"
 )
 
-def fetch_data(city):
-  conn = http.client.HTTPSConnection("weatherapi-com.p.rapidapi.com")
+# Function to fetch weather forecast data for a given location
+def fetch_weather_data(city):
+    conn = http.client.HTTPSConnection("weatherapi-com.p.rapidapi.com")
 
-  headers = {
-    'X-RapidAPI-Key': API_KEY,
-    'X-RapidAPI-Host': "weatherapi-com.p.rapidapi.com"
-  }
+    headers = {
+        'X-RapidAPI-Key': API_KEY,
+        'X-RapidAPI-Host': "weatherapi-com.p.rapidapi.com"
+    }
 
-  city = city.replace(" ", "_")
-  conn.request("GET", f'/current.json?q={city}', headers=headers)
+    # Replace whitespaces with underscores in the city name
+    city = city.replace(" ", "_")
+    conn.request("GET", f'/forecast.json?q={city}&days=1', headers=headers)
 
-  res = conn.getresponse()
-  data = res.read()
+    res = conn.getresponse()
+    data = res.read()
+    return data.decode("utf-8")
 
-  return data.decode("utf-8")
+# Function to get user input for location and preferred temperature range
 
-#Function to check if the current temperature is outside of the user's preferred range.
-def get_info(ctx: Context) -> bool:
-  global min_temp
-  global max_temp
-  global location
 
-  
-  location = input("Enter Location: ")
-  ctx.storage.set("location", location)
-
-  
-  min_temp = int(input("Enter Minimum Temperature: "))
-  max_temp = int(input("Enter Maximum Temperature: "))
-  ctx.storage.set("minTemp", min_temp)
-  ctx.storage.set("maxTemp", max_temp)
-  ctx.logger.info(f'Minimum Temperature set to {min_temp} and Maximum temperature set to {max_temp}.')
-  
-@agent.on_interval(period=120)
+# Check weather status every 2 minutes
+@temperature_alert_agent.on_interval(period=10)
 async def check_weather_status(ctx: Context):
-    # start from here if the error occurs
-    if min_temp is None or max_temp is None or location is None: 
-       get_info(ctx)
-    data = retrieve_info(ctx, location)
-    
-    if data is not None:
-        curr_temp = data['current']['temp_c']
-        ctx.logger.info(f'Current Temperature: {curr_temp}.')
-        temperature_alert_message(ctx, min_temp, max_temp, curr_temp)
-    else:
-        ctx.logger.info("There was an Error getting weather status for the given location, please consider checking if the location is a valid city name.")
+    await ctx.send(user_agent.address, Request(response_address=temperature_alert_agent.address))
+    loc = ctx.storage.get("location")
+    if loc:
+        current_temp, forecasted_temp = retrieve_weather_info(ctx, loc)
+        ctx.logger.info(f'Current Temperature: {current_temp}.')
+        ctx.logger.info(f'Forecasted Temperature of 24 hrs: {forecasted_temp}')
+        await temperature_alert_message(ctx, ctx.storage.get("minTemp"), ctx.storage.get("maxTemp"), current_temp, forecasted_temp)
 
-
-def retrieve_info(ctx: Context, location):
+# Retrieve necessary weather information from fetched data
+def retrieve_weather_info(ctx: Context, location):
     while True:
         try:
-          data = json.loads(fetch_data(location)) 
-          curr_temp = data['current']['temp_c']
-          return data
+            data = json.loads(fetch_weather_data(location))
+            current_temp = data['current']['temp_c']
+            forecasted_temp = data['forecast']['forecastday'][0]['day']['avgtemp_c']
+            return current_temp, forecasted_temp
         except KeyError:
-            ctx.logger.info("There was an Error getting weather status for the given location, please consider checking if the location is a valid city name.")
+            ctx.logger.info("Error getting weather status for the given location. Please check if the location is valid.")
             location = input("Enter Location: ")
             ctx.storage.set("location", location)
 
-# Message handler for temperature alert requests'
-def temperature_alert_message(ctx: Context,min_temp: int, max_temp: int, curr_temp: int):
-  if(curr_temp > max_temp):
-    ctx.logger.info("Alert! Current temperature is above than your preffered temperature range.")
-  elif(curr_temp < min_temp):
-    ctx.logger.info("Alert! Current temperature is below than your preffered temperature range.")
-  else:
-    pass
+# Message handler for temperature alerts
+async def temperature_alert_message(ctx: Context, min_temp: float, max_temp: float, current_temp: float, forecasted_temp: float):
+    if current_temp > max_temp:
+        await ctx.send(user_agent.address,Alert(text="Alert! Current temperature is above your preferred temperature range."))
+    elif current_temp < min_temp:
+        await ctx.send(user_agent.address,Alert(text="Alert! Current temperature is below your preferred temperature range."))
+    else:
+        ctx.logger.info("You will be informed if the temperature goes out of your preffered range.")
+
+
+    if forecasted_temp > max_temp:
+        await ctx.send(user_agent.address,Alert(text="Alert! Forecasted temperature for the next 24 hours is above your preferred temperature range."))
+    elif forecasted_temp < min_temp:
+        await ctx.send(user_agent.address,Alert(text="Alert! Forecasted temperature for the next 24 hours is below your preferred temperature range."))
+    else:
+        pass
+
+@temperature_alert_agent.on_message(model=UserPreference)
+async def handle_message(ctx: Context, sender: str, msg: UserPreference):
+    ctx.storage.set("minTemp", msg.minTemp)
+    ctx.storage.set("maxTemp",msg.maxTemp)
+    ctx.storage.set("location", msg.location)
 
 
