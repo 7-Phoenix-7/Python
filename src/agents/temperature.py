@@ -1,13 +1,16 @@
+# Import necessary libraries and modules
 from uagents import Agent, Context
 from messages.alert_msg import Alert
 from messages.request import Request
 from messages.userpreference_msg import UserPreference
 import json
 import http
+
+# Import user_agent and API_KEY from related modules (not shown in this code snippet)
 from .user import user_agent
 from .config import API_KEY
 
-# Creating the agent
+# Creating the TemperatureAlertAgent
 temperature_alert_agent = Agent(
     name="TemperatureAlertAgent",
     seed="Temperature Alert Agent"
@@ -30,14 +33,15 @@ def fetch_weather_data(city):
     data = res.read()
     return data.decode("utf-8")
 
-# Function to get user input for location and preferred temperature range
-
-
-# Check weather status every 2 minutes
+# Check weather status every 10 seconds
 @temperature_alert_agent.on_interval(period=10)
 async def check_weather_status(ctx: Context):
+    # Send a request to user_agent
     await ctx.send(user_agent.address, Request(response_address=temperature_alert_agent.address))
+    
+    # Get the location from the storage
     loc = ctx.storage.get("location")
+    
     if loc:
         current_temp, forecasted_temp = retrieve_weather_info(ctx, loc)
         ctx.logger.info(f'Current Temperature: {current_temp}.')
@@ -64,8 +68,7 @@ async def temperature_alert_message(ctx: Context, min_temp: float, max_temp: flo
     elif current_temp < min_temp:
         await ctx.send(user_agent.address,Alert(text="Alert! Current temperature is below your preferred temperature range."))
     else:
-        ctx.logger.info("You will be informed if the temperature goes out of your preffered range.")
-
+        ctx.logger.info("You will be informed if the temperature goes out of your preferred range.")
 
     if forecasted_temp > max_temp:
         await ctx.send(user_agent.address,Alert(text="Alert! Forecasted temperature for the next 24 hours is above your preferred temperature range."))
@@ -74,10 +77,9 @@ async def temperature_alert_message(ctx: Context, min_temp: float, max_temp: flo
     else:
         pass
 
+# Message handler for receiving user preferences
 @temperature_alert_agent.on_message(model=UserPreference)
 async def handle_message(ctx: Context, sender: str, msg: UserPreference):
     ctx.storage.set("minTemp", msg.minTemp)
     ctx.storage.set("maxTemp",msg.maxTemp)
     ctx.storage.set("location", msg.location)
-
-
