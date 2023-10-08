@@ -1,7 +1,7 @@
 <<<<<<< HEAD:pyproject.toml
 [tool.poetry]
 name = "temperature-alert-agent"
-version = "0.6.2"
+version = "0.0.1"
 description = "A temperature alert agent using uAgents libarary."
 authors = ["Bhavik Pawar, Kshitij Shinde, Sarthak Pawar, Prathamesh Bhamare"]
 license = "n"
