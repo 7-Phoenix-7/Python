@@ -3,7 +3,7 @@
 name = "temperature-alert-agent"
 version = "0.6.2"
 description = "A temperature alert agent using uAgents libarary."
-authors = ["Your Name <you@example.com>"]
+authors = ["Bhavik Pawar, Kshitij Shinde, Sarthak Pawar, Prathamesh Bhamare"]
 license = "n"
 readme = "README.md"
 
