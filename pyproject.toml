@@ -15,14 +15,6 @@ uagents = "^0.6.2"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
-=======
-[tool.poetry]
-name = "temperature-alert-agent"
-version = "0.6.2"
-description = "A temperature alert agent using uAgents libarary."
-authors = ["Your Name <you@example.com>"]
-license = "n"
-readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "3.11.3"
