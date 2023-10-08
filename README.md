@@ -1,6 +1,4 @@
-# Project Name
-
-Temperature Alert System
+# Temperature Alert System
 
 ## Description
 
